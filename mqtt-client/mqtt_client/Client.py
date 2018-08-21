@@ -39,6 +39,10 @@ class FloatWrapper(float):
 	topic=ConfigurationString(
 		defaultValue='telldus',
 		title='Base topic'
+	),
+	availability_topic=ConfigurationString(
+		defaultValue='',
+		title='Availability topic'
 	)
 )
 class Client(Plugin):
@@ -60,6 +64,8 @@ class Client(Plugin):
 	def connect(self):
 		if self.config('username') != '':
 			self.client.username_pw_set(self.config('username'), self.config('password'))
+		if self.config('availability_topic') != '':
+			self.client.will_set(self.config('availability_topic'), "offline", 0, True)
 		self.client.connect_async(self.config('hostname'), self.config('port'))
 		self.client.loop_start()
 
@@ -73,6 +79,8 @@ class Client(Plugin):
 		}))
 
 	def onConnect(self, client, userdata, flags, result):
+		if self.config('availability_topic') != '':
+			self.client.publish(self.config('availability_topic'), 'online', 0, True)
 		pass
 
 	def onMessage(self, client, userdata, msg):
